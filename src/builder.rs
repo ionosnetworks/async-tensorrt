@@ -25,6 +25,11 @@ impl Builder {
         Ok(Builder { inner })
     }
 
+    /// Create [`Builder`] from its inner object.
+    pub fn from_inner(inner: InnerBuilder) -> Self {
+        Self { inner }
+    }
+
     /// Create a new optimization profile.
     ///
     /// [TensorRT documentation](https://docs.nvidia.com/deeplearning/tensorrt/api/c_api/classnvinfer1_1_1_i_builder.html#a68a8b59fbf86e42762b7087e6ffe6fb4)
