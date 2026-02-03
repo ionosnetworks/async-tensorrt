@@ -82,19 +82,22 @@ impl Engine {
         let internal = self.as_ptr();
         let tensor_name_cstr = std::ffi::CString::new(tensor_name).unwrap();
         let tensor_name_ptr = tensor_name_cstr.as_ptr();
-        let tensor_dimensions = cpp!(unsafe [
+        let mut dimensions = vec![0i64; 8];
+        let dims_ptr = dimensions.as_mut_ptr();
+        let num_dims = cpp!(unsafe [
             internal as "const void*",
-            tensor_name_ptr as "const char*"
-        ] -> Dims as "Dims64" {
-            return ((const ICudaEngine*) internal)->getTensorShape(tensor_name_ptr);
+            tensor_name_ptr as "const char*",
+            dims_ptr as "long*"
+        ] -> i32 as "int" {
+            auto shape = ((const ICudaEngine*) internal)->getTensorShape(tensor_name_ptr);
+            for (int i = 0; i < shape.nbDims; i++) {
+                dims_ptr[i] = static_cast<long>(shape.d[i]);
+            }
+            return shape.nbDims;
         });
 
-        let mut dimensions = Vec::with_capacity(tensor_dimensions.nbDims as usize);
-        for i in 0..tensor_dimensions.nbDims {
-            dimensions.push(tensor_dimensions.d[i as usize] as usize);
-        }
-
-        dimensions
+        dimensions.truncate(num_dims as usize);
+        dimensions.iter().map(|&d| d as usize).collect()
     }
 
     pub fn tensor_io_mode(&self, tensor_name: &str) -> TensorIoMode {
@@ -332,13 +335,4 @@ impl TensorIoMode {
             _ => TensorIoMode::None,
         }
     }
-}
-
-/// Internal representation of the `Dims32` struct in TensorRT.
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-#[allow(non_snake_case)]
-struct Dims {
-    pub nbDims: i32,
-    pub d: [i64; 8usize],
 }
