@@ -86,6 +86,22 @@ impl BuilderConfig {
         self
     }
 
+    /// Set the `kFP16` flag.
+    ///
+    /// [TensorRT documentation for `setFlag`](https://docs.nvidia.com/deeplearning/tensorrt/api/c_api/classnvinfer1_1_1_i_builder_config.html#ac9821504ae7a11769e48b0e62761837e)
+    /// [TensorRT documentation for `kFP16`](https://docs.nvidia.com/deeplearning/tensorrt/api/c_api/namespacenvinfer1.html#abdc74c40fe7a0c3d05d2caeccfbc29c1a56e4ef5e47a48568bd24c4e0aaabcead)
+    pub fn with_bf16(mut self) -> Self {
+        let internal = self.as_mut_ptr();
+        cpp!(unsafe [
+            internal as "void*"
+        ] {
+            #if NV_TENSORRT_MAJOR >= 10
+            ((IBuilderConfig*) internal)->setFlag(BuilderFlag::kBF16);
+            #endif
+        });
+        self
+    }
+
     /// Add an optimization profile.
     ///
     /// [TensorRT documentation](https://docs.nvidia.com/deeplearning/tensorrt/api/c_api/classnvinfer1_1_1_i_builder_config.html#ab97fa40c85fa8afab65fc2659e38da82)
