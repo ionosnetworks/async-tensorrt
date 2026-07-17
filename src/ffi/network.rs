@@ -2,6 +2,7 @@ use cpp::cpp;
 
 use crate::ffi::parser::Parser;
 use crate::ffi::MAX_DIMS;
+use crate::DataType;
 
 /// A network definition for input to the builder.
 ///
@@ -224,6 +225,24 @@ impl<'parent> Tensor<'parent> {
             name_ptr as "const char*"
         ] {
             return ((ITensor*) internal)->setName(name_ptr);
+        });
+    }
+
+    /// Set the tensor type.
+    ///
+    /// [TensorRT documentation](https://docs.nvidia.com/deeplearning/tensorrt/api/c_api/classnvinfer1_1_1_i_tensor.html#a44ffc55db1d6e68908859596c4e4ef49)
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - Name to set.
+    pub fn set_type(&mut self, data_type: DataType) {
+        let internal = self.as_mut_ptr();
+        let data_type = data_type as i32;
+        cpp!(unsafe [
+            internal as "void*",
+            data_type as "int32_t"
+        ] {
+            return ((ITensor*) internal)->setType((nvinfer1::DataType)data_type);
         });
     }
 
